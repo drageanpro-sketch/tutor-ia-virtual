@@ -196,14 +196,12 @@
 
     </div>
 
-    <script src="config.js"></script>
 
     <script>
         // ==========================================
         // ⚙️ CONFIGURACIÓN DE AULA VIRTUAL
         // ==========================================
-        const MODEL_NAME = 'gemini-2.5-flash';
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${CONFIG.API_KEY}`;
+        
         // ==========================================
 
         const chatContainer = document.getElementById('chat-container');
@@ -477,15 +475,21 @@
 
         async function fetchWithRetry(payload) {
             try {
-                if (!API_KEY) throw new Error("⚠️ Falta API Key");
-                const response = await fetch(API_URL, {
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!response.ok) throw new Error(`Error ${response.status}`);
-                return response.json();
-            } catch (error) { throw error; }
+                if (!response.ok) {
+                    const errorData = await response.json();
+		    throw new Error(errorData.error || `Error ${response.status}`);
+		}
+
+		return response.json();
+            } catch (error) {
+		console.error("Error en la comunicación:", error);
+		throw error;
+	    }
         }
         
         async function coreSendQuizRequest() {
