@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Tutor Virtual de Inteligencia Artificial</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuente 'Merriweather' para un toque más de libro de texto/académico en títulos, e 'Inter' para lectura -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* CONFIGURACIÓN DE TEMA EDUCATIVO */
+        :root {
+            --bg-paper: #f9fafb; /* Fondo tipo papel muy suave */
+            --primary-blue: #2563eb; /* Azul Real */
+            --academic-blue: #1e3a8a; /* Azul Oscuro Institucional */
+            --chalkboard-green: #065f46; /* Verde Pizarra */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Gris muy suave de fondo exterior */
+        }
+
+        /* Contenedor principal estilo "Cuaderno Digital" */
+        .app-container {
+            max-width: 800px;
+            height: 95vh;
+            display: flex;
+            flex-direction: column;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            background-color: white;
+            border: 1px solid #e5e7eb;
+        }
+        
+        /* Burbuja del Estudiante (Usuario) */
+        .chat-bubble-user {
+            background-color: var(--primary-blue);
+            color: white;
+            border-radius: 12px 12px 2px 12px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+        }
+        
+        /* Burbuja del Tutor (AI) - Estilo Libro de Texto */
+        .chat-bubble-ai {
+            background-color: #f0f9ff; /* Azul cielo muy pálido, relajante para leer */
+            color: #1e293b; /* Slate 800 para alto contraste pero menos duro que el negro puro */
+            border-left: 4px solid var(--academic-blue); /* Borde lateral académico */
+            border-radius: 4px 12px 12px 12px;
+            padding: 14px 18px;
+            font-size: 0.98rem;
+            line-height: 1.6; /* Mayor espaciado para mejor lectura */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Títulos dentro del chat */
+        .chat-bubble-ai strong {
+            font-family: 'Merriweather', serif; /* Fuente serif para conceptos clave */
+            color: var(--academic-blue);
+            font-weight: 700;
+        }
+
+        /* Listas educativas */
+        .chat-bubble-ai ul {
+            margin-top: 8px;
+            margin-bottom: 8px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            padding: 8px 12px 8px 24px;
+            list-style-type: disc;
+        }
+        .chat-bubble-ai li {
+            margin-bottom: 6px;
+        }
+
+        /* Dato Curioso "Post-it" */
+        .fun-fact {
+            background-color: #fef3c7; /* Amarillo Post-it */
+            border: 1px solid #fcd34d;
+            color: #92400e;
+            padding: 10px 14px;
+            border-radius: 8px; /* Ligeramente inclinado visualmente con margen */
+            margin-top: 12px;
+            font-size: 0.9rem;
+            font-family: 'Merriweather', serif;
+            position: relative;
+        }
+        .fun-fact::before {
+            content: "💡";
+            position: absolute;
+            top: -10px;
+            left: -5px;
+            font-size: 1.2rem;
+        }
+
+        /* Área de Chat */
+        #chat-container {
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px; /* Efecto sutil de papel milimetrado */
+            background-color: #ffffff;
+        }
+
+        /* Botones de Opción del Quiz */
+        .quiz-option-button {
+            width: 100%;
+            text-align: left;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background-color: white;
+            color: #334155;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .quiz-option-button:hover:not(:disabled) {
+            border-color: var(--primary-blue);
+            background-color: #eff6ff;
+            transform: translateX(4px);
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .app-container { height: 90vh; }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full bg-white overflow-hidden app-container">
+
+        <!-- Encabezado Académico -->
+        <header class="p-4 bg-slate-900 text-white shadow-md flex items-center justify-between">
+            <div class="flex items-center">
+                <!-- Icono de Birrete -->
+                <div class="bg-blue-600 p-2 rounded-lg mr-3">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold font-serif tracking-wide">Aula Virtual de IA</h1>
+                    <p class="text-xs text-blue-200 uppercase tracking-wider">Tutor Inteligente 2.0</p>
+                </div>
+            </div>
+            <button onclick="startNewChat()" class="p-2 rounded-full hover:bg-slate-700 text-white transition" title="Nueva Lección">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </button>
+        </header>
+
+        <!-- Pizarra de Chat -->
+        <main id="chat-container" class="flex-grow p-4 space-y-4 overflow-y-auto custom-scrollbar">
+            <!-- Bienvenida dinámica -->
+        </main>
+
+        <!-- Panel de Control del Estudiante -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200"> 
+            
+            <!-- Herramientas de Estudio -->
+            <div class="grid grid-cols-3 gap-2 mb-3">
+                <!-- Botón Quiz (Inicialmente Bloqueado) -->
+                <button onclick="generateQuiz()" id="quiz-button" disabled class="group border border-emerald-600 text-emerald-700 bg-white font-semibold py-2 px-2 rounded-lg transition text-xs md:text-sm flex flex-col items-center justify-center shadow-sm opacity-50 cursor-not-allowed" title="Haz una pregunta primero">
+                    <span class="text-lg mb-1 group-hover:scale-110 transition">📝</span>
+                    <span>Evaluación</span>
+                </button>
+                <!-- Botón Resumen (Inicialmente Bloqueado) -->
+                <button onclick="generateSummary()" id="summary-button" disabled class="group border border-amber-600 text-amber-700 bg-white font-semibold py-2 px-2 rounded-lg transition text-xs md:text-sm flex flex-col items-center justify-center shadow-sm opacity-50 cursor-not-allowed" title="Haz una pregunta primero">
+                    <span class="text-lg mb-1 group-hover:scale-110 transition">📖</span>
+                    <span>Repaso Rápido</span>
+                </button>
+                <!-- Botón Profesor (Siempre activo) -->
+                <button onclick="contactProfessor()" id="contact-button" class="group border border-blue-600 text-blue-700 hover:bg-blue-50 bg-white font-semibold py-2 px-2 rounded-lg transition text-xs md:text-sm flex flex-col items-center justify-center shadow-sm">
+                    <span class="text-lg mb-1 group-hover:scale-110 transition">👨‍🏫</span>
+                    <span>Profesor Humano</span>
+                </button>
+            </div>
+            
+            <!-- Entrada de Consulta -->
+            <div class="relative">
+                <input type="text" id="user-input" placeholder="Pregunta sobre redes neuronales, ML, historia..." class="w-full p-4 pr-14 border border-slate-300 bg-white text-slate-800 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition placeholder-slate-400" onkeydown="if(event.key === 'Enter') handleUserInput()">
+                
+                <button onclick="handleUserInput()" id="send-button" class="absolute right-2 top-2 bottom-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 transition disabled:bg-slate-400 flex items-center justify-center shadow-md">
+                    <svg id="send-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                    <!-- Spinner -->
+                    <div id="loading-spinner" class="hidden">
+                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                </button>
+            </div>
+            <p id="error-message" class="text-xs text-red-600 mt-2 hidden font-semibold text-center"></p>
+        </div>
+
+    </div>
+
+    <script src="config.js"></script>
+
+    <script>
+        // ==========================================
+        // ⚙️ CONFIGURACIÓN DE AULA VIRTUAL
+        // ==========================================
+        const MODEL_NAME = 'gemini-2.5-flash';
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${CONFIG.API_KEY}`;
+        // ==========================================
+
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const quizButton = document.getElementById('quiz-button');
+        const summaryButton = document.getElementById('summary-button');
+        const contactButton = document.getElementById('contact-button'); 
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const errorMessage = document.getElementById('error-message');
+        const sendIcon = document.getElementById('send-icon');
+
+        let chatHistory = [];
+        let currentQuizData = null; 
+        const MAX_QUIZ_ROUNDS = 3;
+        let quizRound = 0;
+
+        const quizSchema = {
+            type: "OBJECT",
+            properties: {
+                "question": { "type": "STRING" },
+                "options": { "type": "ARRAY", "items": { "type": "STRING" } },
+                "correct_index": { "type": "INTEGER" },
+                "feedback": { "type": "STRING" }
+            },
+            required: ["question", "options", "correct_index", "feedback"]
+        };
+
+        // --- INSTRUCCIONES PEDAGÓGICAS MEJORADAS ---
+        const systemInstruction = {
+            parts: [{
+                text: `
+                ROL: Eres un Profesor Experto en Inteligencia Artificial con un estilo Socrático y amable.
+                
+                METODOLOGÍA DE ENSEÑANZA:
+                1. **Analogías**: Explica conceptos técnicos usando comparaciones con la vida diaria (ej: "Una red neuronal es como un equipo de expertos votando...").
+                2. **Claridad**: Define términos técnicos en negritas la primera vez que los uses.
+                3. **Estructura**: Usa párrafos cortos y listas para facilitar la lectura.
+                4. **Curiosidad**: Termina tus explicaciones principales invitando a profundizar más.
+                
+                FORMATO DE RESPUESTA:
+                - Usa emojis educativos (📚, 🧠, 🔍).
+                - Usa negritas para conceptos clave.
+                - Si el usuario pide un Quiz, genera SOLO UNA pregunta a la vez.
+                
+                IMPORTANTE: Al final de cada interacción (respuesta, quiz o resumen), añade SIEMPRE un bloque llamado "💡 Dato Curioso" con un hecho fascinante y breve sobre la historia o futuro de la IA.
+                `
+            }]
+        };
+
+        function displayWelcomeMessage() {
+            chatContainer.innerHTML = '';
+            chatHistory = [];
+            currentQuizData = null;
+            quizRound = 0;
+            
+            const welcomeMessage = `
+                <div class="flex justify-start animate-fade-in-up">
+                    <div class="chat-bubble-ai max-w-sm md:max-w-md">
+                        <p class="font-serif text-blue-900 font-bold text-lg mb-2">¡Bienvenido a tu Clase de IA! 🎓</p>
+                        <p>Soy tu <strong>Tutor Virtual</strong>. Mi objetivo es que entiendas la Inteligencia Artificial, no solo que memorices datos.</p>
+                        <ul class="text-sm mt-2 mb-2">
+                            <li>Explico con <strong>analogías sencillas</strong>.</li>
+                            <li>Podemos hacer <strong>evaluaciones rápidas</strong>.</li>
+                            <li>Resuelvo dudas específicas paso a paso.</li>
+                        </ul>
+                        <p class="mt-2 text-sm text-slate-600">¿Por dónde te gustaría empezar hoy? ¿Redes Neuronales, Historia de la IA o Machine Learning?</p>
+                    </div>
+                </div>
+            `;
+            chatContainer.innerHTML = welcomeMessage;
+            
+            // Aseguramos que los botones de contexto inicien bloqueados
+            updateContextButtons();
+        }
+
+        window.onload = displayWelcomeMessage;
+
+        // Función para actualizar estado de botones de contexto (Quiz/Resumen)
+        function updateContextButtons() {
+            const hasContext = chatHistory.length > 0;
+            const contextButtons = [quizButton, summaryButton];
+
+            contextButtons.forEach(btn => {
+                if (!hasContext) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.classList.remove('hover:bg-emerald-50', 'hover:bg-amber-50'); // Quitar hover effects
+                    btn.title = "Haz una pregunta primero para habilitar esta función.";
+                } else {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btn.classList.add(btn.id === 'quiz-button' ? 'hover:bg-emerald-50' : 'hover:bg-amber-50');
+                    btn.removeAttribute('title');
+                }
+            });
+        }
+
+        function formatResponseHTML(text) {
+            let htmlText = text || "";
+            // Formato robusto para convertir Markdown a HTML educativo
+            htmlText = htmlText.replace(/^### (.*$)/gim, '<h3 class="font-serif font-bold text-blue-800 mt-2">$1</h3>');
+            htmlText = htmlText.replace(/^## (.*$)/gim, '<h2 class="font-serif font-bold text-blue-900 mt-3">$1</h2>');
+            htmlText = htmlText.replace(/\*\*(.*?)\*\*/g, '<strong class="text-blue-900 font-serif">$1</strong>');
+            
+            // Listas
+            htmlText = htmlText.replace(/^\s*[\*-]\s+(.*)$/gm, '<li>$1</li>');
+            htmlText = htmlText.replace(/((?:<li>.*?<\/li>[\s]*)+)/gs, '<ul class="list-disc pl-5 space-y-1 text-slate-700 bg-white/50 rounded-lg p-2 border border-slate-100">$1</ul>');
+            
+            // Saltos de línea
+            htmlText = htmlText.replace(/\n/g, '<br>');
+            return htmlText;
+        }
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = `${sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai'} max-w-sm md:max-w-lg shadow-sm`; 
+            
+            if (sender === 'ai') {
+                const formattedText = formatResponseHTML(text);
+                bubble.innerHTML = formattedText; 
+                // Añadir etiqueta de rol
+                const label = document.createElement('div');
+                label.className = "text-xs font-bold text-blue-400 mb-1 uppercase tracking-wider";
+                label.innerText = "Tutor IA";
+                bubble.prepend(label);
+            } else {
+                bubble.textContent = text;
+            }
+
+            messageDiv.appendChild(bubble);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function renderQuiz(quizData) {
+            currentQuizData = quizData; 
+            const quizHtml = `
+                <div class="flex justify-start mb-4">
+                    <div id="quiz-bubble-${quizRound}" class="chat-bubble-ai max-w-sm md:max-w-md w-full">
+                        <div class="flex items-center mb-2">
+                            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded mr-2">Evaluación</span>
+                            <span class="text-xs text-slate-500">Pregunta ${quizRound + 1} de ${MAX_QUIZ_ROUNDS}</span>
+                        </div>
+                        <p class="font-serif font-bold text-slate-800 text-lg mb-4 leading-snug">${quizData.question}</p>
+                        <div id="quiz-options-container-${quizRound}" class="space-y-2">
+                            ${quizData.options.map((option, index) => `
+                                <button 
+                                    class="quiz-option-button hover:ring-2 hover:ring-blue-200" 
+                                    onclick="checkQuizAnswer(this, ${index}, ${quizRound})"
+                                    id="option-${quizRound}-${index}"
+                                >
+                                    <span class="font-bold text-slate-400 mr-2">${String.fromCharCode(65 + index)}.</span> ${option}
+                                </button>
+                            `).join('')}
+                        </div>
+                        <div id="quiz-feedback-${quizRound}" class="mt-4 hidden p-4 rounded-lg text-sm border-l-4"></div>
+                        <div id="quiz-fun-fact-${quizRound}" class="mt-4 hidden"></div>
+                        <div id="quiz-next-action-${quizRound}" class="mt-4 hidden"></div>
+                    </div>
+                </div>
+            `;
+            chatContainer.insertAdjacentHTML('beforeend', quizHtml);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function checkQuizAnswer(selectedButton, selectedIndex, round) {
+            if (!currentQuizData) return; 
+            const correctIndex = currentQuizData.correct_index;
+            
+            // Deshabilitar
+            const container = document.getElementById(`quiz-options-container-${round}`);
+            Array.from(container.children).forEach(btn => btn.disabled = true);
+
+            // Estilos Correcto/Incorrecto
+            const correctBtn = document.getElementById(`option-${round}-${correctIndex}`);
+            correctBtn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-900');
+            correctBtn.innerHTML += ' ✅';
+
+            const feedbackDiv = document.getElementById(`quiz-feedback-${round}`);
+            const isCorrect = (selectedIndex === correctIndex);
+
+            if (!isCorrect) {
+                selectedButton.classList.add('bg-red-50', 'border-red-500', 'text-red-900');
+                selectedButton.innerHTML += ' ❌';
+                feedbackDiv.className = "mt-4 p-4 rounded-lg text-sm border-l-4 border-red-500 bg-red-50 text-red-900";
+                feedbackDiv.innerHTML = `<strong>¡Casi!</strong> 🧐 <br/> ${currentQuizData.feedback}`;
+            } else {
+                feedbackDiv.className = "mt-4 p-4 rounded-lg text-sm border-l-4 border-emerald-500 bg-emerald-50 text-emerald-900";
+                feedbackDiv.innerHTML = `<strong>¡Excelente!</strong> 🎉 <br/> ${currentQuizData.feedback}`;
+            }
+            
+            feedbackDiv.classList.remove('hidden');
+
+            // Siguiente paso
+            quizRound++;
+            const nextActionDiv = document.getElementById(`quiz-next-action-${round}`);
+            nextActionDiv.classList.remove('hidden');
+
+            if (quizRound < MAX_QUIZ_ROUNDS) {
+                nextActionDiv.innerHTML = `<button onclick="coreSendQuizRequest()" class="w-full mt-2 bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">Siguiente Pregunta ➡️</button>`;
+            } else {
+                nextActionDiv.innerHTML = `<div class="mt-3 p-3 bg-blue-50 text-blue-800 rounded-lg text-center font-bold border border-blue-200">¡Evaluación Completada! 🌟</div>`;
+            }
+
+            getFunFact(round);
+            currentQuizData = null; 
+        }
+
+        async function getFunFact(round) {
+            const factQuery = "Genera un dato curioso BREVE sobre la historia de la IA.";
+            // Usamos un payload simple de texto para esta petición rápida
+            const factPayload = {
+                contents: [{ role: "user", parts: [{ text: factQuery }] }]
+            };
+            
+            try {
+                const result = await fetchWithRetry(factPayload);
+                let text = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                // Limpieza básica
+                text = text.replace("Dato curioso:", "").trim();
+                
+                const factDiv = document.getElementById(`quiz-fun-fact-${round}`);
+                if (factDiv && text) {
+                    factDiv.classList.remove('hidden');
+                    factDiv.innerHTML = `<div class="fun-fact text-amber-900">${text}</div>`;
+                }
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            } catch (e) { console.log("No fact generated"); }
+        }
+
+        // --- MANEJO DE ESTADO UI ACTUALIZADO ---
+        function setUILoading(isLoading) {
+            // Controles de entrada básicos
+            sendButton.disabled = isLoading;
+            userInput.disabled = isLoading;
+            
+            // Botón de contacto siempre sigue al estado de carga
+            contactButton.disabled = isLoading;
+            contactButton.classList.toggle('opacity-50', isLoading);
+
+            // Botones de contexto (Quiz/Resumen)
+            // Lógica: Si está cargando -> Deshabilitar
+            // Si NO está cargando -> Habilitar SOLO SI hay historial
+            const contextButtons = [quizButton, summaryButton];
+            const hasContext = chatHistory.length > 0;
+
+            if (isLoading) {
+                contextButtons.forEach(b => {
+                    b.disabled = true;
+                    b.classList.add('opacity-50', 'cursor-not-allowed');
+                });
+            } else {
+                // Al terminar de cargar, verificamos si ya hay contexto para habilitarlos
+                updateContextButtons();
+            }
+
+            // Spinner
+            if (isLoading) {
+                sendIcon.classList.add('hidden');
+                loadingSpinner.classList.remove('hidden');
+                errorMessage.classList.add('hidden');
+            } else {
+                sendIcon.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+
+        async function fetchWithRetry(payload) {
+            try {
+                if (!API_KEY) throw new Error("⚠️ Falta API Key");
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`Error ${response.status}`);
+                return response.json();
+            } catch (error) { throw error; }
+        }
+        
+        async function coreSendQuizRequest() {
+            setUILoading(true);
+            if (quizRound >= MAX_QUIZ_ROUNDS) { setUILoading(false); return; }
+
+            const quizQuery = "Genera una pregunta de quiz de opción múltiple (JSON) sobre el tema actual. Nivel Principiante.";
+            addMessage(`Generando Pregunta ${quizRound + 1}...`, 'user');
+
+            const payload = {
+                contents: [...chatHistory, { role: "user", parts: [{ text: quizQuery }] }],
+                generationConfig: { responseMimeType: "application/json", responseSchema: quizSchema },
+                systemInstruction: systemInstruction
+            };
+
+            try {
+                const result = await fetchWithRetry(payload);
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                renderQuiz(JSON.parse(jsonText));
+            } catch (error) {
+                errorMessage.textContent = "Error al crear quiz. Intenta de nuevo.";
+                errorMessage.classList.remove('hidden');
+            } finally { setUILoading(false); }
+        }
+
+        async function coreSendRequest(userQuery) {
+            if (!userQuery) return;
+            chatHistory.push({ role: "user", parts: [{ text: userQuery }] });
+
+            const payload = {
+                contents: chatHistory,
+                systemInstruction: systemInstruction
+            };
+
+            try {
+                const result = await fetchWithRetry(payload);
+                const aiResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || "No entendí bien. ¿Puedes reformular?";
+                addMessage(aiResponse, 'ai');
+                chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
+            } catch (error) {
+                console.error(error);
+                errorMessage.textContent = "Error de conexión con el Tutor IA.";
+                errorMessage.classList.remove('hidden');
+                chatHistory.pop(); // Revertir historial
+            } finally { 
+                setUILoading(false); 
+            }
+        }
+
+        function handleUserInput() {
+            const txt = userInput.value.trim();
+            if (!txt) return;
+            addMessage(txt, 'user');
+            userInput.value = '';
+            setUILoading(true);
+            coreSendRequest(txt);
+        }
+
+        function generateQuiz() {
+            quizRound = 0; 
+            coreSendQuizRequest();
+        }
+
+        function generateSummary() {
+            addMessage("📚 Repaso Rápido del Tema", 'user');
+            coreSendRequest("Haz un resumen breve y didáctico de lo que hemos hablado hasta ahora.");
+        }
+        
+        function contactProfessor() {
+            const adminWhatsAppLink = "https://wa.me/1234567890?text=Hola%2C%20Profesor.%20Tengo%20una%20duda.";
+            addMessage("Levantar la mano (Contactar Profesor)", 'user');
+            
+            const contactHTML = `
+                <div class="chat-bubble-ai max-w-sm border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg shadow-sm">
+                    <p class="font-bold text-blue-900 mb-2">👨‍🏫 Horario de Consulta</p>
+                    <p class="text-sm mb-3 text-blue-800">Si la explicación del Tutor IA no fue suficiente, puedes escribirme directamente:</p>
+                    <a href="${adminWhatsAppLink}" target="_blank" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg transition flex items-center justify-center gap-2">
+                        <span>📱</span> Enviar WhatsApp
+                    </a>
+                    <div class="mt-3 text-xs text-blue-400 border-t border-blue-200 pt-2">
+                        Nota: El tiempo de respuesta es de 24 horas hábiles.
+                    </div>
+                </div>
+            `;
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = "flex justify-start mb-4";
+            msgDiv.innerHTML = contactHTML;
+            chatContainer.appendChild(msgDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>
